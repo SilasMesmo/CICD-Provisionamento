@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CI/CD Testando</title>
+    <link rel="stylesheet" href="./style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div id="app">
+        <div class="glass-card">
+            <h1>🚀 CI/CD Pipeline Pronto</h1>
+            <p class="subtitle">automação</p>
+
+            <div class="status-container">
+                <div class="status-indicator" id="status-indicator"></div>
+                <span id="status-text">Sistema Inativo</span>
+            </div>
+
+            <div class="card">
+                <button id="deployBtn" type="button">Fazer Deploy</button>
+                <button id="shutdownBtn" type="button" class="danger-btn">Desligar Sistema</button>
+            </div>
+
+            <p class="read-the-docs">
+                Clique no botão para testar a lógica de interação.
+            </p>
+        </div>
+    </div>
+    <script type="module" src="/main.js"></script>
+</body>
+
+</html>

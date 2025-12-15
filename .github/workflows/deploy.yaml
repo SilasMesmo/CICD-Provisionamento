@@ -1,0 +1,96 @@
+name: "Build & Deploy da App"
+
+on:
+  # Roda automaticamente após o workflow do Terraform finalizar
+  workflow_run:
+    workflows: ["Terraform"]
+    types:
+      - completed
+  workflow_dispatch:
+
+env:
+  PROJECT_ID: ${{secrets.PROJECT_ID}}
+  REGION: "us-central1"
+  REPO_NAME: "silas-images"
+  IMAGE_NAME: "cicd-silas"
+  CLUSTER_NAME: "silas-cluster"
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  build-and-deploy:
+    # Só roda se o Terraform tiver dado sucesso
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Garante que o Helm está instalado
+      - name: Install Helm
+        uses: azure/setup-helm@v4.2.0
+        with:
+          version: 'v3.13.3'
+
+      # 1. Autenticação Google
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.SERVICEACCOUNT }}
+
+      # 2. Configura o Docker com o Google
+      - name: Configure Docker Auth
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
+
+      # 3. Build e Push da Imagem Docker
+      - name: Build and Push Container
+        run: |
+          FULL_IMAGE_NAME="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
+          docker build -t $FULL_IMAGE_NAME ./app
+          docker push $FULL_IMAGE_NAME
+          echo "APP_IMAGE_URL=$FULL_IMAGE_NAME" >> $GITHUB_ENV
+
+      ## 4. Instala Plugin GKE pelo Action
+      - name: Set up Cloud SDK and GKE Plugin
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          install_components: 'gke-gcloud-auth-plugin'
+
+          # 5. Instala Ansible e Dependências
+      - name: Install Ansible and Python Libs
+        working-directory: ./ansible
+        run: |
+          pip install ansible kubernetes google-auth requests
+          ansible-galaxy install -r requirements.yaml
+
+      # 5. Roda Ansible Kong 
+      - name: Run Ansible - Kong
+        working-directory: ./ansible
+        run: |
+          gcloud container clusters get-credentials ${{env.CLUSTER_NAME}} --zone ${{env.REGION}} --project ${{env.PROJECT_ID}}
+
+          kubectl apply -k https://github.com/Kong/kubernetes-ingress-controller/config/crd?ref=v3.1.2
+          
+          ansible-playbook -i inventory/hosts.ini playbooks/01-kong.yaml -e "image=$APP_IMAGE_URL" -vvv
+        env:
+          ANSIBLE_FORCE_COLOR: '1'
+          GCP_PROJECT: ${{env.PROJECT_ID}}
+          # Avisa o Ansible que as roles estão na pasta ./roles
+          ANSIBLE_ROLES_PATH: ./roles
+          # Força o uso do plugin
+          USE_GKE_GCLOUD_AUTH_PLUGIN: 'True'
+
+      # 6. Roda Ansible: Deploy App
+      - name: Run Ansible - App Deploy
+        working-directory: ./ansible
+        run: |
+          ansible-playbook -i inventory/hosts.ini playbooks/02-deploy.yaml -e "image=$APP_IMAGE_URL" -vvv
+        env:
+          APP_IMAGE_URL: ${{env.APP_IMAGE_URL}}
+          ANSIBLE_FORCE_COLOR: '1'
+          ANSIBLE_ROLES_PATH: ./roles
+          USE_GKE_GCLOUD_AUTH_PLUGIN: 'True'

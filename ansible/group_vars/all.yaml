@@ -1,0 +1,3 @@
+project_id: "{{ lookup('env', 'GCP_PROJECT') }}"
+image: "{{ lookup('env', 'APP_IMAGE_URL') }}"
+#precisam ser declaradas no runner do github actions

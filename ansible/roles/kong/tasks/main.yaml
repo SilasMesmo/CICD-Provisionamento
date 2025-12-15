@@ -1,0 +1,31 @@
+- name: Garantir dependências Python para K8s
+  pip:
+    name:
+      - kubernetes
+    state: present
+    extra_args: "--break-system-packages" #ignorar requisitos de python em ubuntu moderno
+
+- name: Adicionar repositório Helm do Kong
+  kubernetes.core.helm_repository:
+    name: kong
+    repo_url: "https://charts.konghq.com"
+    force_update: true # renovar o cache
+
+- name: Instalar Kong API Gateway via Helm
+  kubernetes.core.helm:
+    name: kong
+    chart_ref: kong/kong 
+    release_namespace: kong
+    create_namespace: true
+    values:
+      ingressController:
+        installCRDs: false
+      
+  # definindo variáveis de admin, proxy e status
+  # kong estava insistindo em usar ipv6
+      env:
+        admin_listen: "127.0.0.1:8444 http2 ssl"
+        proxy_listen: "0.0.0.0:8000, 0.0.0.0:8443 http2 ssl"
+        status_listen: "0.0.0.0:8100"
+      proxy:
+        type: LoadBalancer

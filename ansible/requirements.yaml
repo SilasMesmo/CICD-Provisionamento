@@ -1,0 +1,5 @@
+collections:
+  - name: google.cloud
+  - name: kubernetes.core
+    version: ">=3.0.0"
+  - name: community.general # Manipulação de strings/arquivos

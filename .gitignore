@@ -1,0 +1,45 @@
+#app
+node_modules
+dist
+.DS_Store
+.env
+coverage
+*.key
+*-key.json
+*.pem
+secrets/
+creds/
+
+#ansible
+__pycache__/
+*.pyc
+venv/
+.pytest_cache/
+*.retry
+
+#terraform 
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfplan
+.terraformrc
+terraform.rc
+.terraform/
+.terraform.lock.hcl
+
+# Crash log files
+crash.log
+crash.log.*
+.vscode/
+.idea/
+*.log
+
+# Ignore override files
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Ignore backup files
+*.bak
+*.tmp

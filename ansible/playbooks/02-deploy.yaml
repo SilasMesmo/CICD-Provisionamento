@@ -1,0 +1,7 @@
+- name: playbook task de deploy
+  hosts: localhost
+  gather_facts: false  
+
+  # chama a role 
+  roles:
+    - role: deploy

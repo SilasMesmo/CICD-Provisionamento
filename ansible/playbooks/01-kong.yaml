@@ -1,0 +1,7 @@
+- name: Setup Infraestrutura - Kong API Gateway
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  roles:
+    - role: kong

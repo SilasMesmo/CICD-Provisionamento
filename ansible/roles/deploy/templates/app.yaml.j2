@@ -1,0 +1,126 @@
+# APLICAÇÃO 1: CI/CD SILAS
+
+apiVersion: apps/v1
+kind: Deployment
+metadata: 
+  name: ci-cd-silas
+  namespace: default
+  labels:
+    app: ci-cd
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ci-cd
+  template:
+    metadata:
+      labels:
+        app: ci-cd
+    spec:
+      containers:
+      - name: container-ci-cd
+        image: "{{ image }}"
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ci-cd-svc
+  namespace: default
+spec:
+  selector:
+    app: ci-cd
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: ClusterIP
+---
+# APLICAÇÃO 2: WHOAMI TESTE
+
+apiVersion: apps/v1
+kind: Deployment
+metadata: 
+  name: whoami-app
+  namespace: default
+  labels:
+    app: whoami
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: whoami
+  template:
+    metadata:
+      labels:
+        app: whoami
+    spec:
+      containers:
+      - name: container-whoami
+        image: containous/whoami
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: whoami-svc
+  namespace: default
+spec:
+  selector:
+    app: whoami
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: ClusterIP
+---
+# INGRESS ROTEAMENTO DECLARAR QUE O GATEWAY É O KONG
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: gateway-ingress
+  namespace: default
+  annotations:
+    konghq.com/strip-path: "true"
+spec:
+  ingressClassName: kong
+  rules:
+  # Rota para a app principal
+
+  - host: silasbonito.space
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: ci-cd-svc 
+            port:
+              number: 80
+
+    #app principal também
+  - host: app.silasbonito.space
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: ci-cd-svc
+            port:
+              number: 80
+              
+  # Rota para a app de teste
+  - host: whoami.silasbonito.space
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: whoami-svc
+            port:
+              number: 80

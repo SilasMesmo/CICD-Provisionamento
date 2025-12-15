@@ -1,0 +1,12 @@
+# 1.Instala a lib Python que o Ansible usa para falar com o K8s
+- name: Instalar biblioteca Python kubernetes
+  ansible.builtin.pip:
+    name: kubernetes
+    state: present
+    extra_args: "--break-system-packages"
+
+# 2. Deploy. Meus manifestos
+- name: Deploy da Aplicação (Deployment, Ingress e Services)
+  kubernetes.core.k8s:
+    state: present
+    definition: "{{ lookup('template', 'app.yaml.j2') }}"
