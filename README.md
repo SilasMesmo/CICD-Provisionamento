@@ -4,12 +4,6 @@
 ![Architecture Diagram](./mapa-ci-cd-silas.png)
 *(Fluxo da esteira de automação e arquitetura da aplicação)*
 
-![GCP](https://img.shields.io/badge/Google_Cloud-4285F4?style=for-the-badge&logo=google-cloud&logoColor=white)
-![Terraform](https://img.shields.io/badge/Terraform-7B42BC?style=for-the-badge&logo=terraform&logoColor=white)
-![Ansible](https://img.shields.io/badge/Ansible-EE0000?style=for-the-badge&logo=ansible&logoColor=white)
-![Kubernetes](https://img.shields.io/badge/Kubernetes-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white)
-![Kong](https://img.shields.io/badge/Kong-0033aa?style=for-the-badge&logo=kong&logoColor=white)
-
 ## Abordagem
 
 O objetivo foi construir uma Esteira de Entrega de Software robusta, eliminando intervenções manuais na infraestrutura.
